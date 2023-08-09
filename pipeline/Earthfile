@@ -1,0 +1,48 @@
+VERSION 0.7
+FROM gcr.io/dataflow-templates-base/python38-template-launcher-base
+WORKDIR /pipeline
+
+src-files:
+  COPY pyproject.toml .
+  COPY poetry.lock .
+
+prepare:
+  FROM +src-files
+  RUN pip install poetry==1.4.2
+  RUN poetry config virtualenvs.create false
+  RUN poetry install --compile
+  COPY src ./src
+
+
+build:
+  FROM +prepare
+  ENV ENV=production
+  ENV FLEX_TEMPLATE_PYTHON_PY_FILE="/pipeline/src/pipeline.py"
+  ENV PIP_NO_DEPS=True
+  ENTRYPOINT ["/opt/google/dataflow/python_template_launcher"]
+  SAVE IMAGE --push europe-west1-docker.pkg.dev/tmrow-152415/pipelines/flex-test:latest
+
+deploy:
+  WAIT
+    BUILD +build
+  END
+  FROM +build
+  # We need poetry dependencies installed to deploy, so we manually install gsutil sdk here
+  RUN curl -sSL https://sdk.cloud.google.com | bash
+  COPY pipeline_metadata.json .
+  RUN --push --mount=type=secret,target=./GCP_KEY.JSON,id=GCP_KEY \
+        gcloud auth activate-service-account --key-file=GCP_KEY.JSON && \
+        poetry run start_prod \
+        --runner DataflowRunner \
+        --project tmrow-152415 \
+        --region europe-west1 \
+        --temp_location gs://electricitymap_dataflow/tmp/flowtracing_pipeline \
+        --staging_location gs://electricitymap_dataflow/staging/flowtracing_pipeline \
+        --template_location gs://electricitymap_dataflow/templates/flowtracing_pipeline \
+        --experiment use_runner_v2 \
+        --worker_harness_container_image europe-west1-docker.pkg.dev/tmrow-152415/pipelines/flowtracing:latest && \
+        gcloud auth revoke
+  RUN --push --mount=type=secret,target=./GCP_KEY.JSON,id=GCP_KEY \
+        gcloud auth activate-service-account --key-file=GCP_KEY.JSON && \
+        /root/google-cloud-sdk/bin/gsutil cp ./pipeline_metadata.json gs://electricitymap_dataflow/templates/flowtracing_pipeline_metadata && \
+        gcloud auth revoke
