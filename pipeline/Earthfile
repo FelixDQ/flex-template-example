@@ -1,10 +1,14 @@
 VERSION 0.7
-FROM gcr.io/dataflow-templates-base/python38-template-launcher-base
+FROM apache/beam_python3.8_sdk:2.49.0
 WORKDIR /pipeline
 
 src-files:
   COPY pyproject.toml .
   COPY poetry.lock .
+
+launcher-base:
+    FROM gcr.io/dataflow-templates-base/flex-template-launcher-image
+    SAVE ARTIFACT /opt/google/dataflow/python_template_launcher /launcher
 
 prepare:
   FROM +src-files
@@ -19,8 +23,15 @@ build:
   ENV ENV=production
   ENV FLEX_TEMPLATE_PYTHON_PY_FILE="/pipeline/src/pipeline.py"
   ENV PIP_NO_DEPS=True
-  ENTRYPOINT ["/opt/google/dataflow/python_template_launcher"]
+  COPY entry.sh /pipeline/entry.sh
+  COPY +launcher-base/launcher /opt/google/dataflow/python_template_launcher
+  ENTRYPOINT ["/pipeline/entry.sh"]
   SAVE IMAGE --push europe-west1-docker.pkg.dev/tmrow-152415/pipelines/flex-test:latest
+
+build2:
+    FROM +build
+    ENTRYPOINT ["/opt/apache/beam/boot"]
+    SAVE IMAGE --push europe-west1-docker.pkg.dev/tmrow-152415/pipelines/flex-test-worker:latest
 
 deploy:
   WAIT

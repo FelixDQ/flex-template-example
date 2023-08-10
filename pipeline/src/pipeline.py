@@ -2,6 +2,7 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 import argparse
 import pandas as pd
+import logging
 
 # test import lib
 
@@ -24,4 +25,5 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.INFO)
     main()
