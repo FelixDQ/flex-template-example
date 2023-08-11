@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "lib"
+name = "examplelib"
 version = "0.1.0"
 description = ""
 authors = ["Felix Qvist <felix.qvist@gmail.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+numpy = "^1.24"
 
 
 [build-system]

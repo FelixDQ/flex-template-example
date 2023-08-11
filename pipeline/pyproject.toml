@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.8"
 apache-beam = {version = "^2.49.0", extras = ["gcloud"]}
 pandas = "^2.0.3"
+examplelib = {path = "../examplelib", develop = true}
 
 [tool.poetry.scripts]
 start = "src.pipeline:main"

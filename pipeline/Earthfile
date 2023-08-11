@@ -3,6 +3,7 @@ FROM apache/beam_python3.8_sdk:2.49.0
 WORKDIR /pipeline
 
 src-files:
+  COPY ../examplelib+src-files/* /examplelib
   COPY pyproject.toml .
   COPY poetry.lock .
 
@@ -22,7 +23,7 @@ build:
   FROM +prepare
   ENV ENV=production
   ENV FLEX_TEMPLATE_PYTHON_PY_FILE="/pipeline/src/pipeline.py"
-  ENV PIP_NO_DEPS=True
+  ENV PYTHONPATH="."
   COPY entry.sh /pipeline/entry.sh
   COPY +launcher-base/launcher /opt/google/dataflow/python_template_launcher
   ENTRYPOINT ["/pipeline/entry.sh"]

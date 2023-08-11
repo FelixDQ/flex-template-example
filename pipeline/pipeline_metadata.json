@@ -1,4 +1,15 @@
 {
     "description": "A simple template that demonstrates the use of the dataflow flex templates",
-    "name": "Flex template example"
+    "name": "Flex template example",
+    "parameters": [{
+      "name": "number_to_add",
+      "label": "Number to add",
+      "helpText": "The number to add to each element in the input PCollection"
+    },
+    {
+      "name": "skip_step",
+      "label": "Skip step",
+      "helpText": "yes/no to skip a step"
+    }
+  ]
   }

@@ -1,0 +1,8 @@
+VERSION 0.7
+FROM python:3.8
+WORKDIR /examplelib
+
+src-files:
+  COPY examplelib ./examplelib
+  COPY pyproject.toml .
+  SAVE ARTIFACT .
